@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIA Tracker</title>
+<style>
+body {
+margin: 0; padding: 10px; font-family: Arial, sans-serif;
+background-color: rgba(0, 0, 0, 0.7); color: white;
+display: flex; flex-direction: column; align-items: center;
+}
+#joinScreen { display: flex; flex-direction: column; gap: 10px; width: 100%;}
+#roomInput { padding: 5px; font-weight: bold; text-align: center; }
+#trackerScreen { display: none; flex-direction: column; gap: 8px; width: 100%; }
+.lane-btn {
+background-color: green; color: white; border: 2px solid white;
+border-radius: 8px; padding: 10px; font-size: 16px; font-weight: bold;
+cursor: pointer; text-align: center; transition: 0.2s;
+}
+</style>
+</head>
+<body>
+<div id="joinScreen">
+<label style="font-size: 12px; text-align: center;">Room Code:</label>
+<input type="text" id="roomInput" placeholder="DUO">
+<button onclick="joinRoom()" style="padding: 5px;">Join</button>
+</div>
+<div id="trackerScreen">
+<div class="lane-btn" id="top" onclick="toggle('top')">TOP</div>
+<div class="lane-btn" id="jgl" onclick="toggle('jgl')">JGL</div>
+<div class="lane-btn" id="mid" onclick="toggle('mid')">MID</div>
+<div class="lane-btn" id="bot" onclick="toggle('bot')">BOT</div>
+<div class="lane-btn" id="sup" onclick="toggle('sup')">SUP</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let myRoomCode = '';
+
+function joinRoom() {
+const input = document.getElementById('roomInput').value.toUpperCase();
+if (input.trim() === '') return;
+myRoomCode = input;
+socket.emit('joinRoom', myRoomCode);
+document.getElementById('joinScreen').style.display = 'none';
+document.getElementById('trackerScreen').style.display = 'flex';
+}
+
+function toggle(laneName) {
+socket.emit('toggleLight', { roomCode: myRoomCode, lane: laneName });
+}
+
+socket.on('updateLights', (lightsData) => {
+for (const lane in lightsData) {
+const button = document.getElementById(lane);
+if (button) {
+button.style.backgroundColor = lightsData[lane];
+}
+}
+});
+</script>
+</body>
+</html>
